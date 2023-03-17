@@ -1,5 +1,5 @@
 @PACKAGE_INIT@
 
-include("${CMAKE_CURRENT_LIST_DIR}/corgi-consoleTargets.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/corgi-plotTargets.cmake")
 
-check_required_components(corgi-console)
+check_required_components(corgi-plot)

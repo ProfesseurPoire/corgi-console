@@ -1,5 +1,9 @@
+#include <corgi/plot/plot.h>
 
-int main()
+#include <iostream>
+
+int main(int argc, char** argv)
 {
+    corgi::plot::init_plot();
     return 0;
 }

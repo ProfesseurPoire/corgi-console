@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(corgi-console DESCRIPTION "ProjectDescription" LANGUAGES CXX VERSION 1.0.0)
+project(corgi-plot DESCRIPTION "ProjectDescription" LANGUAGES CXX VERSION 1.0.0)
+
+include(conan/conanbuildinfo.cmake)
+conan_basic_setup()
 
 set(CMAKE_DEBUG_POSTFIX d)
 
@@ -8,12 +11,14 @@ add_library(${PROJECT_NAME} STATIC "")
 
 # Setting warning level. WX and Werror means warnings are treated as errors.
 if(MSVC)
-target_compile_options(${PROJECT_NAME} PRIVATE -W4 -WX)
+target_compile_options(${PROJECT_NAME} PRIVATE -W4 )
 else()
 target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Werror)
 endif()
 
 set_property(TARGET ${PROJECT_NAME}  PROPERTY CXX_STANDARD 20)
+
+target_link_libraries(${PROJECT_NAME} PUBLIC ${CONAN_LIBS})
 
 target_include_directories(${PROJECT_NAME} PUBLIC 
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

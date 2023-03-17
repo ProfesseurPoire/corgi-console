@@ -1,0 +1,12 @@
+[requires]
+sdl/2.26.1
+sdl_ttf/2.20.1
+
+[generators]
+cmake
+
+[options]
+sdl:shared=True
+sdl_ttf:shared=True
+[imports]
+bin, *.dll -> ../build/bin     # Copies all dll files from packages bin folder to my "bin" folder
