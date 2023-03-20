@@ -11,6 +11,7 @@ namespace corgi::plot
 {
 namespace
 {
+TTF_Font*                font {nullptr};
 enum rendering_mode      rendering_mode_;
 SDL_Surface*             window_surface;
 SDL_Window*              window;
@@ -18,7 +19,7 @@ SDL_Renderer*            renderer;
 std::vector<point_group> groups;
 color                    axis_color_ {20, 20, 40, 255};
 
-int point_size_ = 10;
+int point_size_ = 6;
 
 }    // namespace
 
@@ -42,6 +43,27 @@ corgi::chrono::timer t;
 void add_point_group(std::vector<point> points, color c)
 {
     groups.emplace_back(points, c);
+}
+
+std::vector<SDL_Texture*> textures;
+std::vector<SDL_Surface*> surfaces;
+
+void draw_text(const std::string& text, int x, int y)
+{
+    SDL_Color color {0, 0, 0, 255};
+
+    auto surface = TTF_RenderText_Blended(font, text.c_str(), color);
+    auto texture = SDL_CreateTextureFromSurface(renderer, surface);
+
+    textures.push_back(texture);
+    surfaces.push_back(surface);
+
+    int texW = 0;
+    int texH = 0;
+
+    SDL_QueryTexture(texture, NULL, NULL, &texW, &texH);
+    SDL_Rect dstrect = {x - (texW / 2.0f), y - (texH / 2.0f), texW, texH};
+    SDL_RenderCopy(renderer, texture, NULL, &dstrect);
 }
 
 void add_callback(int time, std::function<void()> callback)
@@ -76,8 +98,7 @@ static point get_point(point p, float unit, float xoffset, float yoffset)
 
 void show()
 {
-    TTF_Font* font =
-        TTF_OpenFont("C:/dev/corgi-plot/resources/Roboto-Regular.ttf", 25);
+    font = TTF_OpenFont("./resources/Roboto-Regular.ttf", 12);
 
     x_width = x_axis_max - x_axis_min;
     y_width = y_axis_max - y_axis_min;
@@ -119,10 +140,6 @@ void show()
 
     while(keep_window_open)
     {
-        SDL_Color    color   = {255, 255, 255};
-        SDL_Surface* surface = TTF_RenderText_Blended(font, "0", color);
-        SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-
         SDL_Event e;
         while(SDL_PollEvent(&e) > 0)
         {
@@ -163,16 +180,32 @@ void show()
         SDL_RenderDrawRect(renderer, &x_axis_line);
         SDL_RenderDrawRect(renderer, &y_axis_line);
 
+        // Draw grid
+
+        // Draw grid x
         for(float i = std::ceilf(x_axis_min); i < x_axis_max; i++)
         {
             if(i == x_axis_min)
                 continue;
 
             point pgrid {i, 0};
-            pgrid = get_point(pgrid, unit, xoffset, yoffset);
+            point pgridmin {i, y_axis_min};
+            point pgridmax {i, y_axis_max};
 
+            pgrid    = get_point(pgrid, unit, xoffset, yoffset);
+            pgridmin = get_point(pgridmin, unit, xoffset, yoffset);
+            pgridmax = get_point(pgridmax, unit, xoffset, yoffset);
+
+            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
             SDL_RenderDrawLine(renderer, pgrid.x, pgrid.y - 5, pgrid.x,
                                pgrid.y + 5);
+
+            SDL_SetRenderDrawColor(renderer, 150, 150, 150, 255);
+
+            SDL_RenderDrawLine(renderer, pgridmin.x, pgridmin.y, pgridmax.x,
+                               pgridmax.y);
+            if(i != 0.0f)
+                draw_text(std::format("{:.1f}", i), pgrid.x, pgrid.y + 15);
         }
 
         for(float i = std::ceilf(y_axis_min); i < y_axis_max; i++)
@@ -180,12 +213,28 @@ void show()
             if(i == y_axis_min)
                 continue;
             point pgrid {0, i};
-            pgrid = get_point(pgrid, unit, xoffset, yoffset);
+            point pgridmin {x_axis_min, i};
+            point pgridmax {x_axis_max, i};
+
+            pgrid    = get_point(pgrid, unit, xoffset, yoffset);
+            pgridmin = get_point(pgridmin, unit, xoffset, yoffset);
+            pgridmax = get_point(pgridmax, unit, xoffset, yoffset);
+            pgrid    = get_point(pgrid, unit, xoffset, yoffset);
+
+            SDL_SetRenderDrawColor(renderer, 150, 150, 150, 255);
+            SDL_RenderDrawLine(renderer, pgridmin.x, pgridmin.y, pgridmax.x,
+                               pgridmax.y);
+
+            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 
             SDL_RenderDrawLine(renderer, pgrid.x - 5, pgrid.y, pgrid.x + 5,
                                pgrid.y);
+
+            if(i != 0.0f)
+                draw_text(std::format("{:.1f}", i), pgrid.x + 20, pgrid.y);
         }
 
+        // Draw group points
         for(auto group : groups)
         {
             SDL_SetRenderDrawColor(renderer, group.color.r, group.color.g,
@@ -221,15 +270,16 @@ void show()
                     break;
             }
         }
-        int texW = 0;
-        int texH = 0;
-        SDL_QueryTexture(texture, NULL, NULL, &texW, &texH);
-        SDL_Rect dstrect = {0, 0, texW, texH};
-        SDL_RenderCopy(renderer, texture, NULL, &dstrect);
+
         SDL_RenderPresent(renderer);
-        SDL_DestroyTexture(texture);
-        SDL_FreeSurface(surface);
-        SDL_DestroyTexture(texture);
+
+        for(auto& t : textures)
+            SDL_DestroyTexture(t);
+        textures.clear();
+
+        for(auto& s : surfaces)
+            SDL_FreeSurface(s);
+        surfaces.clear();
     }
     SDL_DestroyWindow(window);
     SDL_QUIT;

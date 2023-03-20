@@ -40,6 +40,7 @@ void add_callback(int time, std::function<void()> callback);
 void add_repeat_callback(int time, int repeat, std::function<void()> callback);
 void show();
 void clear();
+
 std::vector<point_group>& point_groups();
 
 void set_x_axis(float min, float max);

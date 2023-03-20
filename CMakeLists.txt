@@ -16,6 +16,8 @@ else()
 target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Werror)
 endif()
 
+
+
 set_property(TARGET ${PROJECT_NAME}  PROPERTY CXX_STANDARD 20)
 
 find_package(corgi-chrono CONFIG)
