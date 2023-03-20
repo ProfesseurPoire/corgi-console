@@ -18,7 +18,9 @@ endif()
 
 set_property(TARGET ${PROJECT_NAME}  PROPERTY CXX_STANDARD 20)
 
-target_link_libraries(${PROJECT_NAME} PUBLIC ${CONAN_LIBS})
+find_package(corgi-chrono CONFIG)
+
+target_link_libraries(${PROJECT_NAME} PUBLIC ${CONAN_LIBS} corgi-chrono)
 
 target_include_directories(${PROJECT_NAME} PUBLIC 
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -55,8 +57,6 @@ install(FILES
           "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
         DESTINATION lib/cmake/${PROJECT_NAME}
 )
-
-
 
 # Tests
 
