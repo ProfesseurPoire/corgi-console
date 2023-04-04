@@ -271,6 +271,35 @@ void show()
             }
         }
 
+        auto pixels =
+            new uint32_t[width * height];    // width x height x
+                                             // SDL_PIXELFORMAT_RGBA8888
+
+        // This whole thing save the current image
+        static bool save_once = true;
+        if(save_once)
+        {
+            auto surface = SDL_CreateRGBSurface(SDL_WINDOW_SHOWN, width, height,
+                                                32, 0xff000000, 0x00ff0000,
+                                                0x0000ff00, 0x000000ff);
+
+            SDL_RenderReadPixels(renderer, nullptr, SDL_PIXELFORMAT_RGBA32,
+                                 pixels, 4 * width);
+
+            auto surfacePixels = (Uint32*)surface->pixels;
+
+            for(int i = 0; i < width * height; ++i)
+                surfacePixels[i] = pixels[i];
+
+            SDL_LockSurface(surface);
+
+            SDL_SaveBMP(surface,
+                        ("screen1_" + std::to_string(1) + ".bmp")
+                            .c_str());    // Output buffer
+
+            SDL_UnlockSurface(surface);
+        }
+
         SDL_RenderPresent(renderer);
 
         for(auto& t : textures)
